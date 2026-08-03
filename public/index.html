@@ -38,7 +38,7 @@
     </div>
   </div>
 
-    <script>
+  <script>
     async function fetchRoadmap() {
       const subject = document.getElementById('subjectInput').value;
       const btn = document.getElementById('generateBtn');
@@ -55,7 +55,6 @@
       loading.classList.remove("hidden");
 
       try {
-        // Direct relative path (Kyunki frontend/backend dono ek hi server par hain)
         const response = await fetch('/api/public-roadmap', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -84,7 +83,6 @@
           });
           resultContent.innerHTML = html;
         } else {
-          // Ab humein EXACT backend error screen par dikhega!
           resultContent.innerHTML = `<p class="text-red-400">Server Error: ${data.error || 'API Route not found (404)'}</p>`;
         }
 
@@ -97,7 +95,7 @@
         btn.innerText = "Generate AI Roadmap";
       }
     }
-    </script>
+  </script>
   
 </body>
 </html>
