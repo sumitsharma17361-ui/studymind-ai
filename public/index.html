@@ -3,17 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyMind AI</title>
+  <title>StudyMind AI - Smart Study</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4">
-  <div class="max-w-md w-full bg-slate-800 p-6 rounded-xl shadow-lg text-center">
-    <h1 class="text-2xl font-bold text-blue-400 mb-2">StudyMind AI</h1>
-    <p class="text-gray-400 text-sm mb-4">AI-Powered Smart Study Roadmap & Note Organizer API is Live!</p>
-    <div class="bg-slate-700 p-3 rounded text-xs text-left font-mono text-green-400">
-      Status: 200 OK<br>
-      Endpoints: /api/auth, /api/roadmaps, /api/notes
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center p-6">
+
+  <div class="max-w-2xl w-full bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 mt-10">
+    <div class="flex items-center space-x-3 mb-2">
+      <div class="bg-blue-600 p-2 rounded-lg">⚡</div>
+      <h1 class="text-2xl font-bold text-blue-400">StudyMind AI</h1>
+    </div>
+
+    <p class="text-slate-400 text-sm mb-6">
+      Generate personalized study roadmaps instantly using Google Gemini AI.
+    </p>
+
+    <!-- Input Section -->
+    <div class="space-y-4 mb-6">
+      <input type="text" id="subjectInput" placeholder="Enter Subject (e.g., Database Management, OS)" 
+             class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500">
+      
+      <button onclick="fetchRoadmap()" id="generateBtn"
+              class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold p-3 rounded-lg text-sm transition-all shadow-lg hover:shadow-blue-500/30">
+        Generate AI Roadmap
+      </button>
+    </div>
+
+    <!-- Output Box -->
+    <div id="outputArea" class="hidden bg-slate-950 p-5 rounded-xl border border-slate-700 text-sm h-80 overflow-y-auto">
+       <div id="loading" class="hidden text-yellow-400 animate-pulse text-center mt-10 font-mono">
+         🧠 AI is analyzing and generating roadmap...
+       </div>
+       <div id="resultContent" class="space-y-4"></div>
     </div>
   </div>
+
+  <script>
+    // 👇 YAHAN APNA RENDER URL PASTE KAREIN (Bina last wale slash '/' ke)
+    const BACKEND_URL = "https://studymind-ai-fway.onrender.com";
+
+    async function fetchRoadmap() {
+      const subject = document.getElementById('subjectInput').value;
+      const btn = document.getElementById('generateBtn');
+      const outputArea = document.getElementById('outputArea');
+      const loading = document.getElementById('loading');
+      const resultContent = document.getElementById('resultContent');
+
+      if (!subject) return alert("Please enter a subject name first!");
+
+      // UI update for loading
+      btn.disabled = true;
+      btn.innerText = "Generating...";
+      outputArea.classList.remove("hidden");
+      resultContent.innerHTML = "";
+      loading.classList.remove("hidden");
+
+      try {
+        // Backend API ko call kar rahe hain
+        const response = await fetch(`${BACKEND_URL}/api/roadmaps`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            subject: subject, 
+            targetWeeks: 4, 
+            level: "undergraduate" 
+          })
+        });
+
+        const data = await response.json();
+        loading.classList.add("hidden");
+
+        if (response.ok && data) {
+          // JSON data ko HTML mein convert karna
+          let html = "";
+          const roadmapArray = Array.isArray(data) ? data : (data.roadmap || []);
+          
+          roadmapArray.forEach(module => {
+            html += `
+              <div class="border-b border-slate-800 pb-4 mb-4">
+                <h3 class="text-blue-400 font-bold text-lg mb-2">Week ${module.week}: ${module.title}</h3>
+                <ul class="list-disc ml-5 text-slate-300 space-y-1">
+                  ${module.topics.map(t => `<li>${t}</li>`).join('')}
+                </ul>
+              </div>`;
+          });
+          resultContent.innerHTML = html;
+        } else {
+          resultContent.innerHTML = `<p class="text-red-400">Error: Authentication required ya backend setup pending hai.</p>`;
+        }
+
+      } catch (error) {
+        loading.classList.add("hidden");
+        resultContent.innerHTML = `<p class="text-red-400">Server unreachable. Check URL or logs.</p>`;
+        console.error("Fetch error:", error);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Generate AI Roadmap";
+      }
+    }
+  </script>
 </body>
 </html>
