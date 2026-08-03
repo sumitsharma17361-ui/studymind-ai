@@ -1,27 +1,32 @@
-require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
-const connectDB = require('./config/db');
+require('dotenv').config();
 
 const app = express();
 
-connectDB();
-
-app.use(cors());
+// Middleware
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors());
 
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/roadmaps', require('./routes/roadmapRoutes'));
-app.use('/api/notes', require('./routes/noteRoutes'));
+// Database Connection
+const MONGO_URI = process.env.MONGO_URI;
+if (MONGO_URI) {
+  mongoose.connect(MONGO_URI)
+    .then(() => console.log('[Database] MongoDB Connected Successfully'))
+    .catch(err => console.error('[Database] Connection Error:', err));
+}
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Home Route / Status Check
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: "200 OK",
+    message: "StudyMind AI API is Live!",
+    endpoints: ["/api/auth", "/api/roadmaps", "/api/notes", "/api/public-roadmap"]
+  });
 });
 
-const PORT = process.env.PORT || 5000;
-// 🔓 Public Route (Bina Login ke AI UI chalane ke liye)
+// 🔓 Public Route for AI Roadmap Generation
 app.post('/api/public-roadmap', async (req, res) => {
   try {
     const { generateStudyRoadmap } = require('./services/geminiService');
@@ -30,10 +35,12 @@ app.post('/api/public-roadmap', async (req, res) => {
     res.status(200).json(roadmap);
   } catch (error) {
     console.error('Public Roadmap Error:', error);
-    res.status(500).json({ error: 'Failed to generate roadmap' });
+    res.status(500).json({ error: error.message || 'Failed to generate roadmap' });
   }
 });
 
+// Server Port
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`[Server] StudyMind AI running on port ${PORT}`);
 });
