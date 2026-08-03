@@ -1,26 +1,41 @@
-require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const connectDB = require('./config/db');
+require('dotenv').config();
 
 const app = express();
 
-connectDB();
-
-app.use(cors());
+// Middleware
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors());
 
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/roadmaps', require('./routes/roadmapRoutes'));
-app.use('/api/notes', require('./routes/noteRoutes'));
+// Serve Frontend static files directly from root directory
+app.use(express.static(path.join(__dirname)));
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Database Connection
+const MONGO_URI = process.env.MONGO_URI;
+if (MONGO_URI) {
+  mongoose.connect(MONGO_URI)
+    .then(() => console.log('[Database] MongoDB Connected Successfully'))
+    .catch(err => console.error('[Database] Connection Error:', err));
+}
+
+// 🔓 Public Route for AI Roadmap Generation
+app.post('/api/public-roadmap', async (req, res) => {
+  try {
+    const { generateStudyRoadmap } = require('./services/geminiService');
+    const { subject, targetWeeks, level } = req.body;
+    const roadmap = await generateStudyRoadmap(subject, targetWeeks, level);
+    res.status(200).json(roadmap);
+  } catch (error) {
+    console.error('Public Roadmap Error:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate roadmap' });
+  }
 });
 
-const PORT = process.env.PORT || 5000;
+// Server Port
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`[Server] StudyMind AI running on port ${PORT}`);
 });
