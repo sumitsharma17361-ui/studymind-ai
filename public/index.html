@@ -60,7 +60,8 @@
 
       try {
         // Backend API ko call kar rahe hain
-        const response = await fetch(`${BACKEND_URL}/api/roadmaps`, {
+        const response = await fetch(`${BACKEND_URL}/api/public-roadmap`, {
+          
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
