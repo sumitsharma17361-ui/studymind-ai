@@ -21,6 +21,19 @@ app.get('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
+// 🔓 Public Route (Bina Login ke AI UI chalane ke liye)
+app.post('/api/public-roadmap', async (req, res) => {
+  try {
+    const { generateStudyRoadmap } = require('./services/geminiService');
+    const { subject, targetWeeks, level } = req.body;
+    const roadmap = await generateStudyRoadmap(subject, targetWeeks, level);
+    res.status(200).json(roadmap);
+  } catch (error) {
+    console.error('Public Roadmap Error:', error);
+    res.status(500).json({ error: 'Failed to generate roadmap' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`[Server] StudyMind AI running on port ${PORT}`);
 });
