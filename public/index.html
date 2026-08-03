@@ -38,10 +38,7 @@
     </div>
   </div>
 
-  <script>
-    // 👇 YAHAN APNA RENDER URL PASTE KAREIN (Bina last wale slash '/' ke)
-    const BACKEND_URL = "https://studymind-ai-fway.onrender.com";
-
+    <script>
     async function fetchRoadmap() {
       const subject = document.getElementById('subjectInput').value;
       const btn = document.getElementById('generateBtn');
@@ -51,7 +48,6 @@
 
       if (!subject) return alert("Please enter a subject name first!");
 
-      // UI update for loading
       btn.disabled = true;
       btn.innerText = "Generating...";
       outputArea.classList.remove("hidden");
@@ -59,9 +55,8 @@
       loading.classList.remove("hidden");
 
       try {
-        // Backend API ko call kar rahe hain
-        const response = await fetch(`${BACKEND_URL}/api/public-roadmap`, {
-          
+        // Direct relative path (Kyunki frontend/backend dono ek hi server par hain)
+        const response = await fetch('/api/public-roadmap', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -75,7 +70,6 @@
         loading.classList.add("hidden");
 
         if (response.ok && data) {
-          // JSON data ko HTML mein convert karna
           let html = "";
           const roadmapArray = Array.isArray(data) ? data : (data.roadmap || []);
           
@@ -90,18 +84,20 @@
           });
           resultContent.innerHTML = html;
         } else {
-          resultContent.innerHTML = `<p class="text-red-400">Error: Authentication required ya backend setup pending hai.</p>`;
+          // Ab humein EXACT backend error screen par dikhega!
+          resultContent.innerHTML = `<p class="text-red-400">Server Error: ${data.error || 'API Route not found (404)'}</p>`;
         }
 
       } catch (error) {
         loading.classList.add("hidden");
-        resultContent.innerHTML = `<p class="text-red-400">Server unreachable. Check URL or logs.</p>`;
+        resultContent.innerHTML = `<p class="text-red-400">Fetch Failed: Please check Render Logs.</p>`;
         console.error("Fetch error:", error);
       } finally {
         btn.disabled = false;
         btn.innerText = "Generate AI Roadmap";
       }
     }
-  </script>
+    </script>
+  
 </body>
 </html>
